@@ -1,0 +1,12 @@
+log:
+  level: info
+
+api:
+  listen: "127.0.0.1:1984"
+
+rtsp:
+  listen: "127.0.0.1:8554"
+
+streams:
+  tapo_cam: []
+  tapo_talk: []

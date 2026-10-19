@@ -1,0 +1,39 @@
+# =============================================================================
+# SMART EHS - DANH SÁCH THƯ VIỆN PHỤ THUỘC (DEPENDENCIES)
+# Cài đặt tự động bằng lệnh: pip install -r requirements.txt
+# =============================================================================
+
+# AI & Học sâu (Deep Learning & Computer Vision)
+ultralytics>=8.0.0
+insightface>=0.7.3
+onnxruntime-gpu>=1.16.0
+opencv-python>=4.8.0
+pillow>=9.0.0
+scipy>=1.10.0
+av>=10.0.0
+
+# Camera ONVIF & Điều khiển phần cứng
+onvif-zeep-async>=4.2.0
+zeep>=4.2.0
+pytapo>=3.4.0
+
+# Âm thanh & Thông báo giọng nói (Audio & TTS)
+sounddevice>=0.4.0
+pygame>=2.5.0
+edge-tts>=6.1.0
+pyttsx3>=2.90
+
+# Quản trị cơ sở dữ liệu & Xuất báo cáo
+openpyxl>=3.1.0
+
+# Giao diện Web Portal (Flask Web Server)
+Flask>=3.0.0
+Werkzeug>=3.0.0
+
+# Mạng & Thông báo OTT (Zalo, Telegram)
+requests>=2.31.0
+urllib3>=2.0.0
+PyYAML>=6.0
+
+# PyInstaller đóng gói ứng dụng
+pyinstaller>=6.0.0

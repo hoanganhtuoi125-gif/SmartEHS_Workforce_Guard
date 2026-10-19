@@ -1,0 +1,41 @@
+=============================================================================
+   🛡️ SMART EHS - HƯỚNG DẪN SỬ DỤNG ỨNG DỤNG SAU KHI GIẢI NÉN
+=============================================================================
+
+Gói ứng dụng này đã bao gồm:
+1. File thực thi độc lập (.EXE) có thể chạy trực tiếp trên Windows.
+2. Trọn bộ mã nguồn Python (.PY) cần thiết để chạy trực tiếp hoặc chỉnh sửa.
+3. Toàn bộ trọng số mô hình AI, cấu hình hệ thống, cơ sở dữ liệu và giao diện Web.
+
+-----------------------------------------------------------------------------
+CÁCH 1: KHỞI CHẠY BẰNG FILE THỰC THI .EXE (KHÔNG CẦN CÀI PYTHON)
+-----------------------------------------------------------------------------
+1. Nhấp đúp vào file "SmartEHS_Guard.exe" (hoặc "Chay_App_EXE.bat").
+2. Ứng dụng sẽ tự động mở giao diện giám sát an toàn lao động & điểm danh đa camera.
+3. Để tạo lối tắt tiện lợi ngoài màn hình Desktop, nhấp đúp vào "Tao_Shortcut_Desktop.bat".
+
+-----------------------------------------------------------------------------
+CÁCH 2: KHỞI CHẠY BẰNG PYTHON (NẾU MÁY ĐÃ CÀI PYTHON)
+-----------------------------------------------------------------------------
+1. Nếu chưa cài đặt các thư viện cần thiết, mở Terminal tại thư mục này và chạy:
+      pip install -r requirements.txt
+2. Khởi chạy ứng dụng:
+      Nhấp đúp vào file "Chay_App_Python.bat"
+   Hoặc gõ lệnh:
+      python main.py
+
+-----------------------------------------------------------------------------
+TRUY CẬP WEB PORTAL / ĐIỆN THOẠI DI ĐỘNG:
+-----------------------------------------------------------------------------
+- Khi ứng dụng đang hoạt động, bạn có thể truy cập Web Dashboard quản trị tại:
+      http://localhost:5000
+- Hoặc từ điện thoại di động / máy tính khác cùng mạng LAN:
+      http://[IP_MAY_TINH]:5000
+
+-----------------------------------------------------------------------------
+CẤU HÌNH CAMERA & THAM SỐ:
+-----------------------------------------------------------------------------
+- Bạn có thể chỉnh sửa cấu hình camera IP Tapo, RTSP, ngưỡng AI trực tiếp trong giao diện:
+      Bấm nút "⚙️ CÀI ĐẶT ĐA CAMERA & HỆ THỐNG" trên giao diện.
+- Hoặc mở file "settings.json" bằng Notepad để cấu hình thủ công.
+=============================================================================

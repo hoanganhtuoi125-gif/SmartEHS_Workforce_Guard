@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# PyInstaller / Build outputs (rất nặng, không đưa lên git)
+_internal/
+build/
+dist/
+*.spec
+*.exe
+
+# Log files
+*.log
+go2rtc_*.log
+
+# CSDL SQLite và báo cáo Excel cục bộ
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+attendance.db
+*.xlsx
+Bao_Cao_Diem_Danh_PPE.xlsx
+
+# Dữ liệu ảnh snapshot chạy thực tế (chỉ giữ thư mục)
+faces/*
+!faces/.gitkeep
+violations/*
+!violations/.gitkeep
+strangers/*
+!strangers/.gitkeep
+temp_voice/*
+!temp_voice/.gitkeep
+
+# Môi trường ảo & IDE
+.venv/
+venv/
+ENV/
+env/
+.vscode/
+.idea/
+
+# File cấu hình tạm go2rtc
+temp_go2rtc.yaml
+test_*.yaml

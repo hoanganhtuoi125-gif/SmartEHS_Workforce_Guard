@@ -1,0 +1,59 @@
+{
+    "beep_enabled": false,
+    "cameras": [
+        {
+            "id": "cam1",
+            "name": "CAM 1 - Cổng Kiểm Soát (Webcam)",
+            "type": "webcam",
+            "source": 0,
+            "role": "attendance"
+        }
+    ],
+    "camera": {
+        "cam_attendance_type": "webcam",
+        "webcam_index": 0,
+        "cam_attendance_rtsp": "",
+        "tapo_ip": "",
+        "tapo_user": "",
+        "tapo_pass": "",
+        "tapo_cloud_pass": "",
+        "tapo_rtsp_port": 554,
+        "tapo_onvif_port": 2020
+    },
+    "thresholds": {
+        "ppe_confidence": 0.45,
+        "face_similarity": 0.5,
+        "cooldown_seconds": 30
+    },
+    "ppe_enabled": {
+        "helmet": true,
+        "vest": true,
+        "gloves": true,
+        "glasses": true,
+        "boots": false
+    },
+    "colors": {
+        "pass": "#00FF00",
+        "violation": "#FF0000",
+        "unknown": "#FF8C00"
+    },
+    "zalo": {
+        "enabled": false,
+        "webhook_url": "",
+        "oa_access_token": "",
+        "oa_user_id": "",
+        "cooldown_seconds": 45
+    },
+    "telegram": {
+        "enabled": false,
+        "bot_token": "",
+        "chat_id": "",
+        "cooldown_seconds": 30
+    },
+    "voice": {
+        "enabled": false,
+        "stranger_enabled": false,
+        "interval_seconds": 30,
+        "voice_type": "vi-VN-NamMinhNeural"
+    }
+}

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART EHS | Hệ Thống Giám Sát An Toàn PPE & Điểm Danh Thông Minh</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Main Navigation Sidebar / Topbar -->
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>SMART EHS</h2>
+                    <span>AI Safety & Attendance</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="tab-dashboard" id="btn-nav-dashboard">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Bảng Điều Khiển</span>
+                </button>
+                <button class="nav-item" data-tab="tab-cameras" id="btn-nav-cameras">
+                    <i class="fa-solid fa-video"></i>
+                    <span>Camera Trực Tiếp</span>
+                    <span class="live-dot-badge"></span>
+                </button>
+                <button class="nav-item" data-tab="tab-employees" id="btn-nav-employees">
+                    <i class="fa-solid fa-id-badge"></i>
+                    <span>Hồ Sơ Nhân Sự</span>
+                </button>
+                <button class="nav-item" data-tab="tab-strangers" id="btn-nav-strangers">
+                    <i class="fa-solid fa-user-secret"></i>
+                    <span>Hồ Sơ Người Lạ</span>
+                    <span class="counter-badge" id="badge-stranger-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="tab-violations" id="btn-nav-violations">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Nhật Ký Vi Phạm</span>
+                </button>
+                <button class="nav-item" data-tab="tab-settings" id="btn-nav-settings">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Cài Đặt & Zalo</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status-chip">
+                    <div class="status-pulse-dot"></div>
+                    <div class="status-info">
+                        <span class="status-title">Mạng Nội Bộ (LAN)</span>
+                        <span class="status-sub" id="server-ip-label">Port: 5000</span>
+                    </div>
+                </div>
+                <a href="/api/export-excel" class="btn-sidebar-export" id="btn-quick-export">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Xuất Báo Cáo Excel</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header Bar -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 class="page-title" id="current-page-title">Bảng Điều Khiển Giám Sát</h1>
+                    <p class="page-subtitle">Giám sát công trường nội bộ (LAN Intranet) & điểm danh bằng AI thời gian thực</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-voice-pill" id="btn-web-voice-toggle" title="Nhấn để bật/tắt cảnh báo giọng nói tiếng Việt">
+                        <i class="fa-solid fa-volume-high"></i> <span id="txt-web-voice">Giọng Nói: BẬT</span>
+                    </button>
+                    <div class="cam-status-pill">
+                        <span class="dot green"></span> Cam 1: Cổng
+                    </div>
+                    <div class="cam-status-pill">
+                        <span class="dot blue"></span> Cam 2: Tapo PTZ
+                    </div>
+                    <div class="clock-display" id="live-clock">
+                        <i class="fa-regular fa-clock"></i> 00:00:00
+                    </div>
+                    <button class="btn-refresh" id="btn-manual-refresh" title="Làm mới dữ liệu">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD OVERVIEW -->
+            <section id="tab-dashboard" class="tab-pane active">
+                <!-- KPI Statistics Row -->
+                <div class="stats-grid">
+                    <div class="stat-card card-att">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="stat-data">
+                            <span class="stat-label">ĐIỂM DANH HÔM NAY</span>
+                            <h3 class="stat-value" id="kpi-attendance">0</h3>
+                            <span class="stat-sub">Cổng quét nhân sự</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card card-vio">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-helmet-safety"></i>
+                        </div>
+                        <div class="stat-data">
+                            <span class="stat-label">VI PHẠM AN TOÀN PPE</span>
+                            <h3 class="stat-value" id="kpi-violations">0</h3>
+                            <span class="stat-sub">Phát hiện tại công trường</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card card-stranger">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div class="stat-data">
+                            <span class="stat-label">NGƯỜI LẠ XÂM NHẬP</span>
+                            <h3 class="stat-value" id="kpi-strangers">0</h3>
+                            <span class="stat-sub">Chưa có trong danh bạ</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card card-emp">
+                        <div class="stat-icon-wrapper">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <div class="stat-data">
+                            <span class="stat-label">TỔNG NHÂN SỰ ĐĂNG KÝ</span>
+                            <h3 class="stat-value" id="kpi-employees">0</h3>
+                            <span class="stat-sub">Đã nạp vào InsightFace</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Split: Mini Live Views + Recent Feeds -->
+                <div class="dashboard-split-grid">
+                    <!-- Left: Camera Preview Dual -->
+                    <div class="content-box">
+                        <div class="box-header">
+                            <div class="box-title">
+                                <i class="fa-solid fa-desktop"></i>
+                                <span>Khung Nhìn Trực Tiếp 2 Camera</span>
+                            </div>
+                            <span class="tag-live"><i class="fa-solid fa-circle"></i> REALTIME STREAM</span>
+                        </div>
+                        <div class="preview-dual-container">
+                            <div class="preview-card zoomable" onclick="openCamZoom('cam1', 'Cam 1: Cổng Kiểm Soát (Quét Nhân Sự & Người Lạ)')" title="Nhấn để phóng to, nhấn đúp để thoát">
+                                <div class="preview-top-bar">
+                                    <span><i class="fa-solid fa-id-card"></i> Cam 1: Cổng (Quét Nhân Sự & Người Lạ)</span>
+                                    <span class="zoom-badge-hint"><i class="fa-solid fa-expand"></i> Phóng to</span>
+                                </div>
+                                <div class="stream-wrapper">
+                                    <img src="/stream/cam1" class="live-stream-img" alt="Cam 1 Stream" onerror="this.src='/static/img/cam_offline.png'">
+                                    <div class="zoom-hover-overlay">
+                                        <span><i class="fa-solid fa-magnifying-glass-plus"></i> Nhấn để xem phóng to</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="preview-card zoomable" onclick="openCamZoom('cam2', 'Cam 2: Tapo PTZ (Giám Sát Vi Phạm PPE)')" title="Nhấn để phóng to, nhấn đúp để thoát">
+                                <div class="preview-top-bar">
+                                    <span><i class="fa-solid fa-hard-hat"></i> Cam 2: Tapo PTZ (Giám Sát Vi Phạm PPE)</span>
+                                    <span class="zoom-badge-hint"><i class="fa-solid fa-expand"></i> Phóng to</span>
+                                </div>
+                                <div class="stream-wrapper">
+                                    <img src="/stream/cam2" class="live-stream-img" alt="Cam 2 Stream" onerror="this.src='/static/img/cam_offline.png'">
+                                    <div class="zoom-hover-overlay">
+                                        <span><i class="fa-solid fa-magnifying-glass-plus"></i> Nhấn để xem phóng to</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Violations & Strangers Feed -->
+                    <div class="content-box">
+                        <div class="box-header">
+                            <div class="box-title">
+                                <i class="fa-solid fa-bell"></i>
+                                <span>Nhật Ký Cảnh Báo Gần Nhất</span>
+                            </div>
+                            <button class="box-action-link" onclick="switchTab('tab-violations')">Xem tất cả</button>
+                        </div>
+                        <div class="recent-feeds-list" id="feed-violations-container">
+                            <!-- Populated via JS -->
+                            <div class="empty-state">Đang tải nhật ký...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: CAMERAS DEDICATED VIEW -->
+            <section id="tab-cameras" class="tab-pane">
+                <div class="cameras-full-container">
+                    <div class="camera-big-card zoomable" onclick="openCamZoom('cam1', 'Cam 1: Cổng Kiểm Soát (Quét Nhân Sự & Người Lạ)')" title="Nhấn để phóng to, nhấn đúp để thoát">
+                        <div class="cam-card-header">
+                            <div class="cam-title">
+                                <i class="fa-solid fa-door-open"></i>
+                                <div>
+                                    <h4>CAMERA 1: CỔNG KIỂM SOÁT</h4>
+                                    <small>Nhiệm vụ: Quét nhận diện nhân viên, Điểm danh & Bắt người lạ</small>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span class="zoom-badge-hint"><i class="fa-solid fa-expand"></i> Phóng to</span>
+                                <span class="status-badge green">Hoạt Động</span>
+                            </div>
+                        </div>
+                        <div class="stream-big-wrapper">
+                            <img src="/stream/cam1" class="live-stream-img" alt="Cam 1 Full Stream">
+                            <div class="zoom-hover-overlay">
+                                <span><i class="fa-solid fa-magnifying-glass-plus"></i> Nhấn để xem phóng to</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="camera-big-card zoomable" onclick="openCamZoom('cam2', 'Cam 2: Tapo C200 Toàn Cảnh Công Trường (Quét PPE)')" title="Nhấn để phóng to, nhấn đúp để thoát">
+                        <div class="cam-card-header">
+                            <div class="cam-title">
+                                <i class="fa-solid fa-mountain-sun"></i>
+                                <div>
+                                    <h4>CAMERA 2: TAPO C200 TOÀN CẢNH CÔNG TRƯỜNG</h4>
+                                    <small>Nhiệm vụ: Quét trang bị PPE, Phát hiện sai sót an toàn lao động</small>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span class="zoom-badge-hint"><i class="fa-solid fa-expand"></i> Phóng to</span>
+                                <span class="status-badge blue">Hoạt Động</span>
+                            </div>
+                        </div>
+                        <div class="stream-big-wrapper">
+                            <img src="/stream/cam2" class="live-stream-img" alt="Cam 2 Full Stream">
+                            <div class="zoom-hover-overlay">
+                                <span><i class="fa-solid fa-magnifying-glass-plus"></i> Nhấn để xem phóng to</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: EMPLOYEE MANAGEMENT -->
+            <section id="tab-employees" class="tab-pane">
+                <div class="toolbar-bar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="input-search-emp" placeholder="Tìm kiếm nhân viên theo tên hoặc chức vụ...">
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn btn-primary" id="btn-open-add-emp">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Thêm Nhân Viên Mới</span>
+                        </button>
+                        <a href="/api/export-excel" class="btn btn-secondary">
+                            <i class="fa-solid fa-file-excel"></i>
+                            <span>Tải Báo Cáo Excel</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Employees Grid -->
+                <div class="employees-card-grid" id="employees-grid-container">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+            <!-- TAB 4: STRANGER PROFILES REGISTRY -->
+            <section id="tab-strangers" class="tab-pane">
+                <div class="toolbar-bar">
+                    <div class="toolbar-info">
+                        <h3><i class="fa-solid fa-user-secret"></i> Nhật Ký & Hồ Sơ Đối Tượng Chưa Đăng Ký</h3>
+                        <p>Các đối tượng vãng lai hoặc nhân sự mới chưa đăng ký được Cam 1 tự động chụp lại</p>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn btn-danger" id="btn-clear-all-strangers">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Xóa Tất Cả Ảnh Người Lạ</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="strangers-grid" id="strangers-grid-container">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+            <!-- TAB 5: VIOLATIONS LOG & EVIDENCE -->
+            <section id="tab-violations" class="tab-pane">
+                <div class="toolbar-bar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-filter"></i>
+                        <input type="text" id="input-filter-vio" placeholder="Lọc theo tên hoặc lỗi vi phạm (thiếu mũ, thiếu áo...)...">
+                    </div>
+                    <div class="toolbar-actions">
+                        <a href="/api/export-excel" class="btn btn-secondary">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Xuất Excel Đầy Đủ</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ảnh Bằng Chứng</th>
+                                <th>Họ & Tên</th>
+                                <th>Lỗi Vi Phạm PPE</th>
+                                <th>Thời Gian Ghi Nhận</th>
+                                <th>Trạng Thái & Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="violations-tbody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 6: SETTINGS & ZALO -->
+            <section id="tab-settings" class="tab-pane">
+                <div class="settings-grid">
+                    <!-- Zalo Notifications Box -->
+                    <div class="content-box">
+                        <div class="box-header">
+                            <div class="box-title">
+                                <i class="fa-brands fa-rocketchat" style="color: #0068ff;"></i>
+                                <span>Cấu Hình Nhận Báo Cáo Vi Phạm Qua Zalo</span>
+                            </div>
+                        </div>
+                        <div class="settings-form-body">
+                            <p class="settings-desc">
+                                Khi phát hiện công nhân vi phạm an toàn PPE tại công trường, hệ thống tự động gửi thông báo tức thời tới Quản lý qua Webhook Zalo Bot hoặc Zalo Official Account (OA).
+                            </p>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="chk-zalo-enabled" checked>
+                                    <span>Kích hoạt tự động gửi cảnh báo qua Zalo</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Zalo Webhook URL (Hỗ trợ Zalo Bot Gateway, n8n, Make, Zapier, Webhook Server):</label>
+                                <input type="url" id="inp-zalo-webhook" class="form-control" placeholder="https://your-webhook-endpoint.com/api/zalo">
+                                <small class="form-hint">Hệ thống sẽ gửi HTTP POST kèm nội dung vi phạm, vị trí và ảnh bằng chứng.</small>
+                            </div>
+
+                            <div class="form-divider"><span>Hoặc gửi trực tiếp qua Zalo OA API</span></div>
+
+                            <div class="form-row">
+                                <div class="form-group col-6">
+                                    <label>Zalo OA Access Token:</label>
+                                    <input type="text" id="inp-zalo-token" class="form-control" placeholder="Nhập Access Token của Zalo OA...">
+                                </div>
+                                <div class="form-group col-6">
+                                    <label>Zalo Recipient User ID:</label>
+                                    <input type="text" id="inp-zalo-userid" class="form-control" placeholder="ID người nhận trên Zalo OA...">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Thời gian dãn cách thông báo (Cooldown Seconds):</label>
+                                <input type="number" id="inp-zalo-cooldown" class="form-control" value="45" min="10" max="600">
+                                <small class="form-hint">Tránh gửi dồn dập nhiều tin nhắn cho cùng 1 người vi phạm.</small>
+                            </div>
+
+                            <div class="settings-btn-row">
+                                <button class="btn btn-outline" id="btn-test-zalo">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Bấm Gửi Thử Nghiệm Zalo</span>
+                                </button>
+                                <button class="btn btn-primary" id="btn-save-settings">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Lưu Cấu Hình</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Warning Configuration Box -->
+                    <div class="content-box">
+                        <div class="box-header">
+                            <div class="box-title">
+                                <i class="fa-solid fa-volume-high" style="color: #fbbf24;"></i>
+                                <span>Cấu Hình Cảnh Báo Bằng Giọng Nói (Voice Warning)</span>
+                            </div>
+                        </div>
+                        <div class="settings-form-body">
+                            <p class="settings-desc">
+                                Hệ thống chỉ phát cảnh báo bằng giọng nói khi phát hiện <strong>Người Lạ chưa đăng ký</strong> tại cổng kiểm soát. Đã loại bỏ hoàn toàn cảnh báo giọng nói vi phạm PPE của nhân sự để tránh làm ồn hiện trường.
+                            </p>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="chk-stranger-voice-enabled" checked>
+                                    <span>Bật cảnh báo an ninh bằng giọng nói khi phát hiện NGƯỜI LẠ</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="chk-beep-enabled">
+                                    <span>Bật tiếng còi bíp cảnh báo (Mặc định: TẮT để không làm phiền)</span>
+                                </label>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-6">
+                                    <label>Thời gian nghỉ sau khi đọc xong (giây):</label>
+                                    <input type="number" id="inp-voice-interval" class="form-control" value="30" min="10" max="300">
+                                    <small class="form-hint">Mặc định: 30 giây sau khi phát xong câu.</small>
+                                </div>
+                                <div class="form-group col-6">
+                                    <label>Giọng đọc tiếng Việt:</label>
+                                    <select id="sel-voice-type" class="form-control">
+                                        <option value="vi-VN-HoaiMyNeural">Hoài My (Giọng Nữ chuẩn EHS)</option>
+                                        <option value="vi-VN-NamMinhNeural">Nam Minh (Giọng Nam nghiêm trang)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-btn-row">
+                                <button class="btn btn-outline" id="btn-test-voice">
+                                    <i class="fa-solid fa-bullhorn"></i>
+                                    <span>Nghe Thử Cảnh Báo Người Lạ</span>
+                                </button>
+                                <button class="btn btn-secondary" id="btn-toggle-voice-quick">
+                                    <i class="fa-solid fa-power-off"></i>
+                                    <span>Bật / Tắt Báo Người Lạ</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI & System Info Box -->
+                    <div class="content-box">
+                        <div class="box-header">
+                            <div class="box-title">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>Phân Bổ Nhiệm Vụ 2 Camera & Tối Ưu GPU/CPU</span>
+                            </div>
+                        </div>
+                        <div class="system-opt-cards">
+                            <div class="opt-card">
+                                <div class="opt-badge green">CAM 1: CỔNG KIỂM SOÁT</div>
+                                <h4>Nhận Diện Nhân Sự & Bắt Người Lạ</h4>
+                                <ul>
+                                    <li>Chạy InsightFace CUDA FP16 tối ưu.</li>
+                                    <li>Điểm danh tự động khi nhân viên bước vào.</li>
+                                    <li>Phát hiện người lạ, tự động chụp ảnh khuôn mặt lưu hồ sơ.</li>
+                                    <li>Giảm tải: Không quét PPE toàn cục tại cổng, tiết kiệm 50% GPU.</li>
+                                </ul>
+                            </div>
+                            <div class="opt-card">
+                                <div class="opt-badge blue">CAM 2: TAPO PTZ TOÀN CẢNH</div>
+                                <h4>Giám Sát An Toàn Lao Động PPE</h4>
+                                <ul>
+                                    <li>Chạy mô hình YOLOv11 PPE PyTorch CUDA FP16.</li>
+                                    <li>Quét mũ bảo hộ, áo phản quang, găng tay, giày.</li>
+                                    <li>Suy luận xen kẽ thông minh, tiết kiệm tài nguyên GPU.</li>
+                                    <li>Tự động ghi hình bằng chứng và kích hoạt Zalo Alert.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: THÊM NHÂN VIÊN MỚI -->
+    <div id="modal-add-employee" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-plus"></i> Thêm Nhân Viên Mới</h3>
+                <button class="modal-close" onclick="closeModal('modal-add-employee')">&times;</button>
+            </div>
+            <form id="form-add-employee" class="modal-body">
+                <div class="form-group">
+                    <label>Họ & Tên Nhân Viên <span class="required">*</span></label>
+                    <input type="text" id="add-emp-name" class="form-control" placeholder="Ví dụ: Nguyễn Văn An" required>
+                </div>
+                <div class="form-group">
+                    <label>Chức Vụ / Vị Trí</label>
+                    <select id="add-emp-role" class="form-control">
+                        <option value="Công nhân">Công nhân</option>
+                        <option value="Kỹ sư công trường">Kỹ sư công trường</option>
+                        <option value="Chỉ huy trưởng">Chỉ huy trưởng</option>
+                        <option value="Giám sát an toàn EHS">Giám sát an toàn EHS</option>
+                        <option value="Khách tham quan">Khách tham quan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ảnh Chân Dung Khuôn Mặt <span class="required">*</span></label>
+                    <div class="upload-dropzone" id="dropzone-add-emp">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Kéo & thả hoặc bấm để chọn ảnh chân dung rõ mặt</p>
+                        <span class="file-hint">Định dạng JPG, JPEG, PNG (Tối đa 10MB)</span>
+                        <input type="file" id="add-emp-file" accept="image/*" style="display: none;" required>
+                    </div>
+                    <div id="preview-add-container" class="preview-container" style="display: none;">
+                        <img id="img-add-preview" src="" alt="Preview">
+                        <span id="txt-add-filename"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-employee')">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-add-emp">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Lưu & Nạp Vào AI</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: SỬA NHÂN VIÊN -->
+    <div id="modal-edit-employee" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-pen"></i> Chỉnh Sửa Thông Tin Nhân Viên</h3>
+                <button class="modal-close" onclick="closeModal('modal-edit-employee')">&times;</button>
+            </div>
+            <form id="form-edit-employee" class="modal-body">
+                <input type="hidden" id="edit-emp-original-name">
+                <div class="form-group">
+                    <label>Họ & Tên Nhân Viên</label>
+                    <input type="text" id="edit-emp-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Chức Vụ</label>
+                    <select id="edit-emp-role" class="form-control">
+                        <option value="Công nhân">Công nhân</option>
+                        <option value="Kỹ sư công trường">Kỹ sư công trường</option>
+                        <option value="Chỉ huy trưởng">Chỉ huy trưởng</option>
+                        <option value="Giám sát an toàn EHS">Giám sát an toàn EHS</option>
+                        <option value="Khách tham quan">Khách tham quan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cập Nhật Ảnh Mới (Tùy chọn, để trống nếu giữ ảnh cũ)</label>
+                    <input type="file" id="edit-emp-file" class="form-control" accept="image/*">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-employee')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CHI TIẾT HỒ SƠ NHÂN VIÊN -->
+    <div id="modal-emp-detail" class="modal-overlay">
+        <div class="modal-box modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-address-card"></i> Chi Tiết Hồ Sơ Nhân Viên</h3>
+                <button class="modal-close" onclick="closeModal('modal-emp-detail')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="emp-detail-top">
+                    <img id="detail-emp-avatar" src="" alt="Avatar" class="detail-avatar">
+                    <div class="detail-meta">
+                        <h2 id="detail-emp-name">---</h2>
+                        <span class="role-badge" id="detail-emp-role">---</span>
+                        <div class="detail-counts">
+                            <span><i class="fa-solid fa-calendar-check"></i> Điểm danh: <b id="detail-emp-att-c">0</b></span>
+                            <span><i class="fa-solid fa-triangle-exclamation"></i> Vi phạm: <b id="detail-emp-vio-c">0</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-tabs">
+                    <div class="detail-tab-header">
+                        <button class="sub-tab-btn active" onclick="switchSubTab('sub-tab-att')">Lịch Sử Điểm Danh</button>
+                        <button class="sub-tab-btn" onclick="switchSubTab('sub-tab-vio')">Lịch Sử Vi Phạm PPE</button>
+                    </div>
+                    <div id="sub-tab-att" class="sub-tab-content active">
+                        <ul class="history-list" id="detail-att-list"></ul>
+                    </div>
+                    <div id="sub-tab-vio" class="sub-tab-content">
+                        <div class="evidence-gallery" id="detail-vio-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CHUYỂN NGƯỜI LẠ THÀNH NHÂN VIÊN -->
+    <div id="modal-convert-stranger" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-check"></i> Đăng Ký Người Lạ Thành Nhân Viên</h3>
+                <button class="modal-close" onclick="closeModal('modal-convert-stranger')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="convert-preview">
+                    <img id="convert-stranger-img" src="" alt="Stranger">
+                    <p id="convert-stranger-time">Thời gian: ---</p>
+                </div>
+                <input type="hidden" id="convert-stranger-id">
+                <div class="form-group">
+                    <label>Họ & Tên Nhân Viên Mới <span class="required">*</span></label>
+                    <input type="text" id="convert-emp-name" class="form-control" placeholder="Nhập họ và tên..." required>
+                </div>
+                <div class="form-group">
+                    <label>Chức Vụ</label>
+                    <select id="convert-emp-role" class="form-control">
+                        <option value="Công nhân">Công nhân</option>
+                        <option value="Kỹ sư công trường">Kỹ sư công trường</option>
+                        <option value="Chỉ huy trưởng">Chỉ huy trưởng</option>
+                        <option value="Giám sát an toàn EHS">Giám sát an toàn EHS</option>
+                        <option value="Khách tham quan">Khách tham quan</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-convert-stranger')">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="btn-submit-convert">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Xác Nhận & Nạp Vào AI</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PHÓNG TO CAMERA (CLICK ĐỂ PHÓNG TO, DOUBLE-CLICK ĐỂ THOÁT) -->
+    <div id="modal-cam-zoom" class="modal-cam-zoom-overlay" ondblclick="closeCamZoom()">
+        <div class="cam-zoom-box" onclick="event.stopPropagation()" ondblclick="closeCamZoom()">
+            <div class="cam-zoom-header">
+                <div class="cam-zoom-title">
+                    <i class="fa-solid fa-expand"></i>
+                    <h3 id="cam-zoom-title-text">CAMERA LIVE VIEW</h3>
+                    <span class="tag-live"><i class="fa-solid fa-circle"></i> TRỰC TIẾP HD</span>
+                </div>
+                <div class="cam-zoom-controls">
+                    <span class="cam-zoom-hint"><i class="fa-solid fa-computer-mouse"></i> Nhấn đúp (Double-Click) hoặc ESC để thoát</span>
+                    <button class="cam-zoom-close-btn" onclick="closeCamZoom()" title="Đóng phóng to">&times;</button>
+                </div>
+            </div>
+            <div class="cam-zoom-body" ondblclick="closeCamZoom()">
+                <img id="cam-zoom-img" src="" alt="Zoomed Camera Stream">
+                <div class="cam-zoom-floating-badge" id="cam-zoom-floating-badge">
+                    <span>Đang xem luồng phóng to HD • Nhấn đúp để thu nhỏ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
